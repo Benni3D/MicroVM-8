@@ -1,0 +1,84 @@
+Instructions:
+NOP		0x00
+MOV		0x01 <type1/type2> <value>
+ADD		0x02 <type1/type2> <value>
+SUB		0x03 <type1/type2> <value>
+MUL		0x04 <type1/type2> <value>
+DIV		0x05 <type1/type2> <value>
+MOD		0x06 <type1/type2> <value>
+AND		0x07 <type1/type2> <value>
+OR		0x08 <type1/type2> <value>
+XOR		0x09 <type1/type2> <value>
+NEG		0x0A <type> <value>
+NOT		0x0B <type> <value>
+PUSH	0x0C <type> <value>
+POP		0x0D <type> <value>
+PEEK	0x0E <type> <value>
+RSHF	0x0F <type> <value>
+LSHF	0x10 <type> <value>
+PRINT	0x11 <printtype/type> <value>
+READ	0x12 <readtype/type> <value>
+INC		0x13 <type> <value>
+DEC		0x14 <type> <value>
+JMP		0x15 <type> <value>
+HLT		0x16
+EXIT	0x17
+
+Types:
+reg		0x00
+ref		0x01
+int		0x02
+
+ReadTypes/PrintTypes:
+int		0x00
+char	0x01
+string	0x02 [needs ref as type]
+
+
+Registers:
+Accumulator			0x00
+Base				0x01
+Counter				0x02
+Data				0x03
+Source Index		0x04
+Destination Index	0x05
+Stack Pointer		0x06
+Instruction Pointer	0x07
+FLAGS Register		0x08
+
+Specifications:
+Size of Memory	= 256 Bytes
+Size of Stack	= 64 Bytes
+Size of regs	= (FLAGS + 1) Registers
+
+Types:
+typedef uint8_t ubyte_t
+typedef ubyte_t reg_t
+
+enum Instructions
+enum Registers
+enum Types
+class MicroVM
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

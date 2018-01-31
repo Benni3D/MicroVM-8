@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<launch4jConfig>
+  <dontWrapJar>false</dontWrapJar>
+  <headerType>console</headerType>
+  <jar>A:\GitHub Repos\MicroVM-8\asm\bin\microasm8.jar</jar>
+  <outfile>A:\GitHub Repos\MicroVM-8\asm\bin\microasm8.exe</outfile>
+  <errTitle></errTitle>
+  <cmdLine></cmdLine>
+  <chdir>.</chdir>
+  <priority>high</priority>
+  <downloadUrl>http://java.com/download</downloadUrl>
+  <supportUrl></supportUrl>
+  <stayAlive>false</stayAlive>
+  <restartOnCrash>false</restartOnCrash>
+  <manifest></manifest>
+  <icon></icon>
+  <jre>
+    <path></path>
+    <bundledJre64Bit>false</bundledJre64Bit>
+    <bundledJreAsFallback>false</bundledJreAsFallback>
+    <minVersion>1.8.0</minVersion>
+    <maxVersion></maxVersion>
+    <jdkPreference>preferJre</jdkPreference>
+    <runtimeBits>64/32</runtimeBits>
+  </jre>
+  <versionInfo>
+    <fileVersion>1.0.0.0</fileVersion>
+    <txtFileVersion>1.0-beta</txtFileVersion>
+    <fileDescription>The Assembler for MicroVM-8</fileDescription>
+    <copyright>MIT-LICENSE</copyright>
+    <productVersion>1.0.0.0</productVersion>
+    <txtProductVersion>1.0-beta</txtProductVersion>
+    <productName>MicroVM-8 Assembler</productName>
+    <companyName></companyName>
+    <internalName>microvmasm8</internalName>
+    <originalFilename>microvmasm8.exe</originalFilename>
+    <trademarks></trademarks>
+    <language>ENGLISH_US</language>
+  </versionInfo>
+</launch4jConfig>
