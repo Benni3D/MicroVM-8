@@ -1,5 +1,7 @@
 package as;
 
+import java.util.Map.Entry;
+
 public class Bytecode {
 	public static final byte
 		NOP = 0,
@@ -26,6 +28,23 @@ public class Bytecode {
 		JMP = 21,
 		HLT = 22,
 		EXIT = 23,
+		COPY = 24,
+		FILL = 25,
+		CALL = 26,
+		RET = 27,
+		XCHG = 28,
+		CMP = 29,
+		CMPS = 30,
+		JE = 31,
+		JNE = 32,
+		JG = 33,
+		JGE = 34,
+		JL = 35,
+		JLE = 36,
+		LOOP = 37,
+		IMUL = 38,
+		IDIV = 39,
+		SLEEP = 40,
 		
 		TYPE_REG = 0,
 		TYPE_REF = 1,
@@ -41,12 +60,22 @@ public class Bytecode {
 		REG_IP = 7,
 		REG_FLAGS = 8;
 	public static byte getType(String v) {
+		for(Entry<String, Entry<Integer, Byte>> e : Assembler.replaces.entrySet()) {
+			if(v.equals(e.getKey())) {
+				return e.getValue().getValue();
+			}
+		}
 		if(v.startsWith("%"))return TYPE_REG;
 		if(v.startsWith("[") && v.endsWith("]")) return TYPE_REF;
 		if(v.startsWith("$") || (v.startsWith("'") && v.endsWith("'")))return TYPE_INT;
 		return -1;
 	}
 	public static int getValue(String v) {
+		for(Entry<String, Entry<Integer, Byte>> e : Assembler.replaces.entrySet()) {
+			if(v.equals(e.getKey())) {
+				return e.getValue().getKey() & 0xFF;
+			}
+		}
 		byte type = getType(v);
 		switch(type) {
 		case TYPE_REG: {

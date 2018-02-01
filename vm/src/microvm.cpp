@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cstring>
+#include <Windows.h>
 #include "microvm.h"
 
 Types get_type1(ubyte_t i) {
@@ -26,6 +28,7 @@ void MicroVM::run() {
 	regs[SP] = 0;
 	set_running(true);
 	while (regs[IP] < sizeof(memory)-1 && is_running()) {
+		//std::cout << "Executing " << (unsigned)memory[regs[IP]] << " at " << (unsigned)regs[IP] << std::endl;
 		exec(&memory[regs[IP]]);
 	}
 }
@@ -884,6 +887,413 @@ void MicroVM::exec(const ubyte_t* instr) {
 	case EXIT: {
 		set_running(false);
 		regs[IP]++;
+		break;
+	}
+	case COPY: {
+		ubyte_t src = stack_pop();
+		ubyte_t dest = stack_pop();
+		ubyte_t size = instr[1];
+		for (size_t i = 0; i < size; i++) {
+			memory[dest + i] = memory[src + i];
+		}
+		regs[IP] += 2;
+		break;
+	}
+	case FILL: {
+		ubyte_t addr = stack_pop();
+		ubyte_t fill = instr[1];
+		ubyte_t size = instr[2];
+		for (size_t i = 0; i < size; i++) {
+			memory[addr + i] = fill;
+		}
+		regs[IP] += 3;
+		break;
+	}
+	case CALL: {
+		ubyte_t addr = instr[1];
+		stack_push(regs[IP] + 2);
+		regs[IP] = addr;
+		break;
+	}
+	case RET: {
+		regs[IP] = stack_pop();
+		break;
+	}
+	case XCHG: {
+		ubyte_t reg1 = instr[1], reg2 = instr[2];
+		check_reg(reg1); check_reg(reg2);
+		ubyte_t i = regs[reg1];
+		regs[reg1] = regs[reg2];
+		regs[reg2] = i;
+		regs[IP] += 3;
+		break;
+	}
+	case CMP: {
+		ubyte_t type1 = get_type1(instr[1]);
+		ubyte_t type2 = get_type2(instr[1]);
+		ubyte_t i1, i2;
+		switch (type1) {
+		case TYPE_REG: {
+			ubyte_t reg = instr[2];
+			check_reg(reg);
+			i1 = regs[reg];
+			break;
+		}
+		case TYPE_REF: {
+			i1 = memory[instr[2]];
+			break;
+		}
+		case TYPE_INT: {
+			i1 = instr[2];
+			break;
+		}
+		SWITCH_TYPE_DEFAULT
+		}
+		switch (type2) {
+		case TYPE_REG: {
+			ubyte_t reg = instr[3];
+			check_reg(reg);
+			i2 = regs[reg];
+			break;
+		}
+		case TYPE_REF: {
+			i2 = memory[instr[3]];
+			break;
+		}
+		case TYPE_INT: {
+			i2 = instr[3];
+			break;
+		}
+		SWITCH_TYPE_DEFAULT
+		}
+
+		if (i1 == i2) last_cmp = EQUAL;
+		else if (i1 > i2) last_cmp = GREATER;
+		else if (i1 < i2) last_cmp = LESS;
+		else last_cmp = NOT_SET;
+
+		regs[IP] += 4;
+		break;
+	}
+	case CMPS: {
+		const char* str1 = reinterpret_cast<const char*>(&memory[instr[1]]);
+		const char* str2 = reinterpret_cast<const char*>(&memory[instr[2]]);
+
+		int i = strcmp(str1, str2);
+		if (i == 0) last_cmp = EQUAL;
+		else if (i < 0) last_cmp = LESS;
+		else if (i > 0) last_cmp = GREATER;
+		else last_cmp = NOT_SET;
+
+		regs[IP] += 3;
+		break;
+	}
+	case JE: {
+		if (last_cmp == NOT_SET) {
+			std::cerr << "There was no cmp!" << std::endl;
+			set_running(false);
+			return;
+		}
+		ubyte_t type = instr[1];
+		ubyte_t addr;
+		switch (type) {
+		case TYPE_REG: {
+			ubyte_t reg = instr[2];
+			check_reg(reg);
+			addr = regs[reg];
+			break;
+		}
+		case TYPE_REF: {
+			addr = memory[instr[2]];
+			break;
+		}
+		case TYPE_INT: {
+			addr = instr[2];
+			break;
+		}
+		SWITCH_TYPE_DEFAULT
+		}
+		if (last_cmp == EQUAL)
+			regs[IP] = addr;
+		else regs[IP] += 3;
+		break;
+	}
+	case JNE: {
+		if (last_cmp == NOT_SET) {
+			std::cerr << "There was no cmp!" << std::endl;
+			set_running(false);
+			return;
+		}
+		ubyte_t type = instr[1];
+		ubyte_t addr;
+		switch (type) {
+		case TYPE_REG: {
+			ubyte_t reg = instr[2];
+			check_reg(reg);
+			addr = regs[reg];
+			break;
+		}
+		case TYPE_REF: {
+			addr = memory[instr[2]];
+			break;
+		}
+		case TYPE_INT: {
+			addr = instr[2];
+			break;
+		}
+		SWITCH_TYPE_DEFAULT
+		}
+		if (last_cmp != EQUAL)
+			regs[IP] = addr;
+		else regs[IP] += 3;
+		break;
+	}
+	case JG: {
+		if (last_cmp == NOT_SET) {
+			std::cerr << "There was no cmp!" << std::endl;
+			set_running(false);
+			return;
+		}
+		ubyte_t type = instr[1];
+		ubyte_t addr;
+		switch (type) {
+		case TYPE_REG: {
+			ubyte_t reg = instr[2];
+			check_reg(reg);
+			addr = regs[reg];
+			break;
+		}
+		case TYPE_REF: {
+			addr = memory[instr[2]];
+			break;
+		}
+		case TYPE_INT: {
+			addr = instr[2];
+			break;
+		}
+		SWITCH_TYPE_DEFAULT
+		}
+		if (last_cmp == GREATER)
+			regs[IP] = addr;
+		else regs[IP] += 3;
+		break;
+	}
+	case JGE: {
+		if (last_cmp == NOT_SET) {
+			std::cerr << "There was no cmp!" << std::endl;
+			set_running(false);
+			return;
+		}
+		ubyte_t type = instr[1];
+		ubyte_t addr;
+		switch (type) {
+		case TYPE_REG: {
+			ubyte_t reg = instr[2];
+			check_reg(reg);
+			addr = regs[reg];
+			break;
+		}
+		case TYPE_REF: {
+			addr = memory[instr[2]];
+			break;
+		}
+		case TYPE_INT: {
+			addr = instr[2];
+			break;
+		}
+		SWITCH_TYPE_DEFAULT
+		}
+		if (last_cmp == GREATER || last_cmp == EQUAL)
+			regs[IP] = addr;
+		else regs[IP] += 3;
+		break;
+	}
+	case JL: {
+		if (last_cmp == NOT_SET) {
+			std::cerr << "There was no cmp!" << std::endl;
+			set_running(false);
+			return;
+		}
+		ubyte_t type = instr[1];
+		ubyte_t addr;
+		switch (type) {
+		case TYPE_REG: {
+			ubyte_t reg = instr[2];
+			check_reg(reg);
+			addr = regs[reg];
+			break;
+		}
+		case TYPE_REF: {
+			addr = memory[instr[2]];
+			break;
+		}
+		case TYPE_INT: {
+			addr = instr[2];
+			break;
+		}
+		SWITCH_TYPE_DEFAULT
+		}
+		if (last_cmp == LESS)
+			regs[IP] = addr;
+		else regs[IP] += 3;
+		break;
+	}
+	case JLE: {
+		if (last_cmp == NOT_SET) {
+			std::cerr << "There was no cmp!" << std::endl;
+			set_running(false);
+			return;
+		}
+		ubyte_t type = instr[1];
+		ubyte_t addr;
+		switch (type) {
+		case TYPE_REG: {
+			ubyte_t reg = instr[2];
+			check_reg(reg);
+			addr = regs[reg];
+			break;
+		}
+		case TYPE_REF: {
+			addr = memory[instr[2]];
+			break;
+		}
+		case TYPE_INT: {
+			addr = instr[2];
+			break;
+		}
+		SWITCH_TYPE_DEFAULT
+		}
+		if (last_cmp == LESS || last_cmp == EQUAL)
+			regs[IP] = addr;
+		else regs[IP] += 3;
+		break;
+	}
+	case LOOP: {
+		ubyte_t type = instr[1];
+		ubyte_t addr;
+		switch (type) {
+		case TYPE_REG: {
+			ubyte_t reg = instr[2];
+			check_reg(reg);
+			addr = regs[reg];
+			break;
+		}
+		case TYPE_REF: {
+			addr = memory[instr[2]];
+			break;
+		}
+		case TYPE_INT: {
+			addr = instr[2];
+			break;
+		}
+		SWITCH_TYPE_DEFAULT
+		}
+		if (regs[C] > 1) {
+			regs[C]--;
+			regs[IP] = addr;
+		}
+		else regs[IP] += 3;
+		break;
+	}
+	case IMUL: {
+		ubyte_t type1 = get_type1(instr[1]);
+		ubyte_t type2 = get_type2(instr[1]);
+		byte_t i;
+		switch (type2) {
+		case TYPE_REG: {
+			ubyte_t reg = instr[3];
+			check_reg(reg);
+			i = static_cast<byte_t>(regs[reg]);
+			break;
+		}
+		case TYPE_REF: {
+			i = static_cast<byte_t>(memory[instr[3]]);
+			break;
+		}
+		case TYPE_INT: {
+			i = static_cast<byte_t>(instr[3]);
+			break;
+		}
+		SWITCH_TYPE_DEFAULT
+		}
+		switch (type1) {
+		case TYPE_REG: {
+			ubyte_t reg = instr[2];
+			check_reg(reg);
+			regs[reg] = static_cast<ubyte_t>(static_cast<byte_t>(regs[reg]) * i);
+			break;
+		}
+		case TYPE_REF: {
+			memory[instr[2]] = static_cast<ubyte_t>(static_cast<byte_t>(memory[instr[2]]) * i);
+			break;
+		}
+		SWITCH_TYPE_DEFAULT
+		}
+
+		regs[IP] += 4;
+		break;
+	}
+	case IDIV: {
+		ubyte_t type1 = get_type1(instr[1]);
+		ubyte_t type2 = get_type2(instr[1]);
+		byte_t i;
+		switch (type2) {
+		case TYPE_REG: {
+			ubyte_t reg = instr[3];
+			check_reg(reg);
+			i = static_cast<byte_t>(regs[reg]);
+			break;
+		}
+		case TYPE_REF: {
+			i = static_cast<byte_t>(memory[instr[3]]);
+			break;
+		}
+		case TYPE_INT: {
+			i = static_cast<byte_t>(instr[3]);
+			break;
+		}
+		SWITCH_TYPE_DEFAULT
+		}
+		switch (type1) {
+		case TYPE_REG: {
+			ubyte_t reg = instr[2];
+			check_reg(reg);
+			regs[reg] = static_cast<ubyte_t>(static_cast<byte_t>(regs[reg]) / i);
+			break;
+		}
+		case TYPE_REF: {
+			memory[instr[2]] = static_cast<ubyte_t>(static_cast<byte_t>(memory[instr[2]]) / i);
+			break;
+		}
+		SWITCH_TYPE_DEFAULT
+		}
+
+		regs[IP] += 4;
+		break;
+	}
+	case SLEEP: {
+		ubyte_t type = instr[1];
+		ubyte_t seconds;
+
+		switch (type) {
+		case TYPE_REG: {
+			ubyte_t reg = instr[2];
+			check_reg(reg);
+			seconds = regs[reg];
+			break;
+		}
+		case TYPE_REF: {
+			seconds = memory[instr[2]];
+			break;
+		}
+		case TYPE_INT: {
+			seconds = instr[2];
+			break;
+		}
+		SWITCH_TYPE_DEFAULT
+		}
+		Sleep(seconds * 1000);
+		regs[IP] += 3;
 		break;
 	}
 	default:

@@ -6,6 +6,7 @@ private:
 	ubyte_t memory[256];
 	ubyte_t stack[64];
 	reg_t regs[FLAGS + 1];
+	ubyte_t last_cmp = NOT_SET;
 public:
 	MicroVM();
 	void load_program(const char* filename);

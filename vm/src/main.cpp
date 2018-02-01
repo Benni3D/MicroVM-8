@@ -5,7 +5,7 @@
 int main(int argc, char** argv) {
 	MicroVM* vm = &MicroVM();
 #ifdef _DEBUG
-	vm->load_program("A:\\Java\\Test\\prog.bin");
+	vm->load_program("A:\\Java\\8bit Assembler\\prog.bin");
 #else
 	if (argc < 2) {
 		std::cerr << "Usage: " << argv[0] << " <binary>" << std::endl;
