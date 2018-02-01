@@ -21,8 +21,25 @@ READ	0x12 <readtype/type> <value>
 INC		0x13 <type> <value>
 DEC		0x14 <type> <value>
 JMP		0x15 <type> <value>
-HLT		0x16
-EXIT	0x17
+HLT		0x16 
+EXIT	0x17 
+COPY	0x18 <size> -> stack(src, dest)
+FILL	0x19 <char> <size> -> stack(addr)
+CALL	0x1A <addr>
+RET		0x1B 
+XCHG	0x1C <reg1> <reg2>
+CMP		0x1D <type1/type2> <value1> <value2>
+CMPS	0x1E <addr1> <addr2>
+JE		0x1F <type> <value>
+JNE		0x20 <type> <value>
+JG		0x21 <type> <value>
+JGE		0x22 <type> <value>
+JL		0x23 <type> <value>
+JLE		0x24 <type> <value>
+LOOP	0x25 <type> <value>
+IMUL	0x26 <type1/type2> <value1> <value2>
+IDIV	0x27 <type1/type2> <value1> <value2>
+SLEEP	0x28 <type> <value>
 
 Types:
 reg		0x00
